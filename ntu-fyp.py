@@ -76,7 +76,7 @@ def save_to_excel(data, filename):
         "Keywords",
     ]
     df = pd.DataFrame(data).reindex(columns=columns).fillna("")
-    df.to_excel(os.path.join("data", filename), index=False)
+    df.to_excel(os.path.join(filename), index=False)
 
 
 def main():
@@ -104,7 +104,6 @@ def main():
     ]
 
     filtered_data = filter_data(data=data, supervisor=supervisor, keywords=keywords)
-    print(filtered_data)
 
     if filtered_data:
         save_to_excel(filtered_data, "filtered_projects.xlsx")
