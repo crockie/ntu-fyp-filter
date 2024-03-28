@@ -1,6 +1,9 @@
 from bs4 import BeautifulSoup
 import pandas as pd
 import os
+from fuzzywuzzy import fuzz
+
+threshold = 80
 
 
 def scrape_table(file_path):
@@ -49,9 +52,13 @@ def filter_data(data, supervisor=None, category=None, project_type=None, keyword
     filtered_data = []
     for project in data:
         # if supervisor is desired, should append regardless
-        if supervisor and project.get("Supervisor") in supervisor:
-            filtered_data.append(project)
-            continue
+        if supervisor:
+            if any(
+                fuzz.partial_ratio(sup, project.get("Supervisor", "")) >= threshold
+                for sup in supervisor
+            ):
+                filtered_data.append(project)
+                continue
 
         # And checks for other criteria
         if keywords:
@@ -62,7 +69,8 @@ def filter_data(data, supervisor=None, category=None, project_type=None, keyword
             continue
         if project_type and project.get("Type") not in project_type:
             continue
-        filtered_data.append(project)
+        if keywords or category or project_type:
+            filtered_data.append(project)
     return filtered_data
 
 
@@ -91,19 +99,22 @@ def main():
         "Chan Syin",
         "Hong Lye",
         "W. K. Ng",
+        "Chen Change Loy",
+        "Vidya Sudarshan",
+        "Ke Yiping, Kelly",
     ]
     # category = ["Software"]
     # project_type = ["Design & Implementation"]
-    keywords = [
-        "Cloud Computing",
-        "Distributed Computing Systems",
-        "High Performance Computing",
-        "Parallel Computing",
-        "Web-based Applications",
-        "Software and Applications",
-    ]
+    # keywords = [
+    #     "Cloud Computing",
+    #     "Distributed Computing Systems",
+    #     "High Performance Computing",
+    #     "Parallel Computing",
+    #     "Web-based Applications",
+    #     "Software and Applications",
+    # ]
 
-    filtered_data = filter_data(data=data, supervisor=supervisor, keywords=keywords)
+    filtered_data = filter_data(data=data, supervisor=supervisor)
 
     if filtered_data:
         save_to_excel(filtered_data, "filtered_projects.xlsx")
